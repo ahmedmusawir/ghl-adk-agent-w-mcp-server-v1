@@ -1,0 +1,31 @@
+[supervisord]
+nodaemon=true
+logfile=/dev/null
+logfile_maxbytes=0
+
+# 1. The MCP Server (Node.js)
+# CRITICAL FIX: We force PORT=9000 so it doesn't steal 8000 from ADK
+[program:mcp]
+directory=/app/ghl-mcp-server-moose-v1
+command=npm run start:http
+environment=PORT=9000
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+stdout_logfile_prefix=[MCP] 
+autostart=true
+autorestart=true
+
+# 2. The ADK Agent (Python)
+# It uses the global PORT (8000) which is exposed to the world
+[program:adk]
+directory=/app
+command=adk web --port %(ENV_PORT)s --host 0.0.0.0
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+stdout_logfile_prefix=[ADK] 
+autostart=true
+autorestart=true

@@ -1,0 +1,57 @@
+# Use Python 3.12 as the base image
+FROM python:3.12-slim
+
+# 1. Install System Dependencies (Node.js + Supervisor)
+# We install curl to download Node, and Supervisor to manage the processes
+RUN apt-get update && \
+    apt-get install -y curl gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs supervisor && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 2. Install Python Dependencies (ADK)
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 3. Install Node Dependencies (MCP)
+# Copy package.json first to leverage Docker cache
+COPY ghl-mcp-server-moose-v1/package*.json ./ghl-mcp-server-moose-v1/
+WORKDIR /app/ghl-mcp-server-moose-v1
+RUN npm install
+
+# 4. Copy the Rest of the Application Code
+WORKDIR /app
+COPY . .
+
+# 5. Build the MCP Server (TypeScript -> JavaScript)
+WORKDIR /app/ghl-mcp-server-moose-v1
+RUN npm run build
+
+# 6. Final Configuration
+WORKDIR /app
+
+# Copy the supervisor config to the system folder
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# --- ENVIRONMENT CONFIGURATION ---
+
+# 1. Google Auth (Points to the key file we copied)
+ENV GOOGLE_APPLICATION_CREDENTIALS="/app/cyberize-vertex-api.json"
+
+# 2. Enable Vertex AI (Replaces your .env file)
+ENV GOOGLE_GENAI_USE_VERTEXAI=TRUE
+
+# 3. Project Details (Replaces your .bash_profile)
+ENV GOOGLE_CLOUD_PROJECT="ninth-potion-455712-g9"
+ENV GOOGLE_CLOUD_LOCATION="global"
+
+# 4. Port Configuration
+ENV PORT=8000
+EXPOSE 8000
+
+# --- START ---
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

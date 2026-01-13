@@ -1,0 +1,50 @@
+# Project Continuity System
+
+## Session Management Protocol
+
+### CRITICAL: Session File Management
+1. **At the START of EVERY session:**
+   - Check if a session file exists for today using format: `SESSION_[MONTH]_[DAY]_[YEAR]_SUMMARY.md`
+   - Example: `SESSION_DEC_24_2025_SUMMARY.md`
+   - If NO file exists for today → CREATE IT IMMEDIATELY
+   - If file exists → READ IT to understand current project state
+
+2. **During the session - UPDATE the session file after:**
+   - Every code change or file modification
+   - Important decisions or findings
+   - Bug fixes or issues discovered
+   - Architecture changes
+   - Dependencies added/removed
+   - ANY significant development
+
+3. **Session File Structure:**
+```md
+# Session: [DATE]
+
+## Project Status
+- Current objective: [what we're working on]
+- Last completed: [what was just finished]
+
+## Code Changes
+- [timestamp] - File: `path/to/file.ext` - Change: [description]
+
+## Key Findings
+- [Important discoveries, bugs found, solutions]
+
+## Next Steps
+- [ ] [What needs to be done next]
+
+## Notes
+- [Any other important context]
+```
+
+### MANDATORY BEHAVIOR
+- **NEVER** skip creating/updating the session file
+- **ALWAYS** update after significant work
+- **RELIGIOUSLY** maintain this system - it's critical for project continuity
+- When returning to a project, **IMMEDIATELY** read all session files chronologically
+
+### On Project Switch
+- Read all SESSION_*.md files to restore full context
+- Start new session file for current date
+- Reference previous session files when needed
